@@ -1,0 +1,1 @@
+import {buildApp} from './app.js';const app=await buildApp();app.listen({port:Number(process.env.PORT??3000),host:'0.0.0.0'}).catch(e=>{app.log.error(e);process.exit(1)});
