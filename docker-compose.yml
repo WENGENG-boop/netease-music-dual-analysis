@@ -5,18 +5,38 @@ services:
       POSTGRES_USER: app
       POSTGRES_PASSWORD: app
       POSTGRES_DB: music
-    ports: ["5432:5432"]
-    volumes: [pgdata:/var/lib/postgresql/data]
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d music"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
   backend:
     build: .
     environment:
+      NODE_ENV: production
       DATABASE_URL: postgres://app:app@postgres:5432/music
       PORT: 3000
       MUSIC_PROVIDER_MODE: enhanced
-    ports: ["3000:3000"]
-    depends_on: [postgres]
+      NCM_API_URL: http://ncm-api:3000
+      CORS_ORIGIN: http://localhost:3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ncm-api:
+        condition: service_started
+    command: ["sh", "-c", "node dist/database/migrate.js && node dist/server.js"]
+
   ncm-api:
     image: binaryify/netease_cloud_music_api:latest
-    expose: ["3000"]
+    expose:
+      - "3000"
+
 volumes:
   pgdata:

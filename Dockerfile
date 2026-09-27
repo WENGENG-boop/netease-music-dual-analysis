@@ -11,4 +11,5 @@ RUN corepack enable
 COPY package.json pnpm-lock.yaml* ./
 RUN pnpm install --prod --no-frozen-lockfile
 COPY --from=build /app/dist ./dist
+COPY --from=build /app/src/database/migrations ./dist/database/migrations
 CMD ["node","dist/server.js"]
